@@ -2,11 +2,13 @@ from typing import List, Dict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
-from datetime import datetime, timedelta
+from datetime import datetime,timezone, timedelta
 from collections import Counter
 
 from . import models, schemas
 from .database import get_db
+from .recommendation import calculate_tag_weights, get_user_interactions, calculate_post_score
+
 
 # Different routers for different resources to allow better developer experience
 users_router = APIRouter(prefix="/api/v1", tags=["Users"])
@@ -218,8 +220,7 @@ def get_personalized_feed(user_id: int, limit: int = 20, db: Session = Depends(g
     2. Score candidate posts based on tag matching and recency
     3. Sort by score and return the top results
     """
-    from .recommendation import calculate_tag_weights, get_user_interactions, calculate_post_score
-    
+
     # Check if user exists
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -241,7 +242,7 @@ def get_personalized_feed(user_id: int, limit: int = 20, db: Session = Depends(g
     candidate_posts = query.order_by(desc(models.Post.created_at)).limit(100).all()
     
     # Calculate score for each candidate post
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     scored_posts = []
     
     if tag_weights:  # User has interactions, use personalized scoring
