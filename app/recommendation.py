@@ -37,14 +37,10 @@ def calculate_tag_weights(user_id: int, db: Session) -> Dict[str, float]:
     )
     
     # Extract tags from liked posts (weight = 1.0)
-    liked_tags = []
-    for post in liked_posts:
-        liked_tags.extend([tag.name for tag in post.tags])
+    liked_tags = [tag.name for post in liked_posts for tag in post.tags]
     
-    # Extract tags from commented posts (weight = 0.5)
-    commented_tags = []
-    for post in commented_posts:
-        commented_tags.extend([tag.name for tag in post.tags])
+    # Extract tags from commented posts (weight = 2.0)
+    commented_tags = [tag.name for post in commented_posts for tag in post.tags]
     
     # Count tag occurrences with appropriate weights
     tag_weights = Counter()
@@ -52,8 +48,8 @@ def calculate_tag_weights(user_id: int, db: Session) -> Dict[str, float]:
         tag_weights[tag] += 1.0
     
     for tag in commented_tags:
-        tag_weights[tag] += 0.5
-    
+        tag_weights[tag] += 2.0
+
     # Normalize weights if there are any interactions
     total_weight = sum(tag_weights.values())
     if total_weight > 0:
