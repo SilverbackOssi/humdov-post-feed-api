@@ -1,0 +1,6 @@
+
+- no authentication or authorization
+- no rate limiting or security policies
+- simple int for ID instead of UUID
+- explicit drop and create tables on DB over proper migration management with Alembic
+- manually adding post tags vs automatically detecting post category with intelligence

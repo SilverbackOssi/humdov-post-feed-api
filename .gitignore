@@ -1,2 +1,5 @@
 venv/
 locale/
+__pycache__/
+
+.env
