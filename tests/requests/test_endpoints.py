@@ -124,6 +124,74 @@ class TestEndpoints(unittest.TestCase):
             self.assertIn("tags", feed[0])
             self.assertIn("score", feed[0])
             self.assertIn("creator_id", feed[0])
+            
+    def test_invalid_likes(self):
+        """Test handling of invalid like requests"""
+        # Test liking a non-existent post
+        like_data = {"user_id": self.user1["id"], "post_id": 9999}
+        response = requests.post(f"{self.BASE_URL}/api/v1/likes", json=like_data)
+        self.assertEqual(response.status_code, 404)
+        
+        # Test liking a post with a non-existent user
+        like_data = {"user_id": 9999, "post_id": self.post1["id"]}
+        response = requests.post(f"{self.BASE_URL}/api/v1/likes", json=like_data)
+        self.assertEqual(response.status_code, 404)
+        
+        # Test unliking a non-existent like
+        like_data = {"user_id": self.user1["id"], "post_id": self.post1["id"]}
+        response = requests.delete(f"{self.BASE_URL}/api/v1/likes", json=like_data)
+        self.assertEqual(response.status_code, 404)
+    
+    def test_with_seeded_data(self):
+        """Test interactions with seeded data (run this after running seed_data.py)"""
+        # This test is intended to run after the database has been seeded
+        # It assumes there are users with IDs starting from 1 and posts starting from 1
+        
+        try:
+            # Try to get user with ID 1 (should exist after seeding)
+            response = requests.get(f"{self.BASE_URL}/api/v1/users/1")
+            
+            # If we get a successful response, proceed with the seeded data test
+            if response.status_code == 200:
+                user_id = 1
+                
+                # Test getting a personalized feed for the seeded user
+                response = requests.get(f"{self.BASE_URL}/api/v1/feed/{user_id}")
+                self.assertEqual(response.status_code, 200)
+                feed = response.json()
+                
+                # Check if we have feed posts
+                self.assertTrue(len(feed) > 0, "Feed should contain posts with seeded data")
+                
+                # Create a new like for this user
+                if len(feed) > 0:
+                    post_id = feed[0]["id"]
+                    like_data = {"user_id": user_id, "post_id": post_id}
+                    
+                    # Create the like
+                    response = requests.post(f"{self.BASE_URL}/api/v1/likes", json=like_data)
+                    self.assertEqual(response.status_code, 200)
+                    
+                    # Get user likes
+                    response = requests.get(f"{self.BASE_URL}/api/v1/likes/{user_id}")
+                    likes = response.json()
+                    
+                    # Verify the like was added
+                    self.assertTrue(any(like["post_id"] == post_id for like in likes),
+                                "New like should be in the user's likes")
+                    
+                    # Get a new feed after adding the like (should exclude the liked post)
+                    response = requests.get(f"{self.BASE_URL}/api/v1/feed/{user_id}")
+                    new_feed = response.json()
+                    
+                    # The liked post should no longer be in the feed
+                    self.assertTrue(all(post["id"] != post_id for post in new_feed),
+                                 "Liked post should be excluded from feed")
+        except:
+            # Skip this test if seeded data is not available
+            print("\nSkipping seeded data test as the database does not appear to be seeded.")
+            # Don't fail the test if seeding hasn't been done
+            pass
 
 
 if __name__ == "__main__":

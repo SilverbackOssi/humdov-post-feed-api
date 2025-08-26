@@ -39,7 +39,7 @@ def calculate_tag_weights(user_id: int, db: Session) -> Dict[str, float]:
     # Extract tags from liked posts (weight = 1.0)
     liked_tags = [tag.name for post in liked_posts for tag in post.tags]
     
-    # Extract tags from commented posts (weight = 2.0)
+    # Extract tags from commented posts (weight = 0.5)
     commented_tags = [tag.name for post in commented_posts for tag in post.tags]
     
     # Count tag occurrences with appropriate weights
