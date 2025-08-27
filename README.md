@@ -42,7 +42,7 @@ The project includes a complete frontend interface that provides an intuitive de
 
 ### Frontend Features
 
-- **Twitter-inspired Design**: Clean, modern UI with blue (#006CFF) accents and gray backgrounds/text inspired by Humdov landing page
+- **Modern Design**: Clean, modern UI with blue (#006CFF) accents and gray backgrounds/text inspired by Humdov landing page
 - **User Selection**: Switch between different users to see personalized feeds
 - **Interactive Feed**: View posts with like/comment counts and interactions
 - **Create Posts**: Add new posts with tags through a user-friendly form
