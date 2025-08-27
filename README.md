@@ -34,6 +34,16 @@ The API will be available at `http://localhost:8000`.
 
 API documentation (Swagger UI) will be available at `http://localhost:8000/docs`.
 
+## Hosted API
+
+A live version of the API is hosted on Render for demonstration purposes:
+
+- **Base URL**: https://humdov-post-feed-api.onrender.com
+- **API Documentation**: https://humdov-post-feed-api.onrender.com/docs
+- **Frontend Interface**: https://humdov-post-feed-api.onrender.com
+
+Note: The hosted version uses the same endpoints as the local version but may have limitations due to the free tier hosting (e.g., potential cold starts, limited concurrent connections).
+
 ## Frontend Interface
 
 The project includes a complete frontend interface that provides an intuitive demonstration of the post feed functionality. After starting the server, you can access the frontend at:
@@ -224,4 +234,4 @@ The API uses SQLAlchemy with SQLite and includes the following models:
 - `Like`: User likes on posts with unique constraint to prevent duplicates
 - `Comment`: User comments on posts with content and timestamp
 
-Note: This API is designed for local development only and is not hosted externally.
+Note: While primarily designed for local development, a hosted version is available on Render for demonstration purposes.
