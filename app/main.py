@@ -33,7 +33,5 @@ def health_check():
 
 @app.on_event("startup")
 async def startup_event():
-    """Create all database tables on startup"""
-    # models.Base.metadata.drop_all(bind=engine)
-    # models.Base.metadata.create_all(bind=engine)
+    """Seed database tables on startup"""
     seed_data.seed_database()
