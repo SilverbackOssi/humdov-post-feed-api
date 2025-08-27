@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from .database import engine
-from . import models, routes, schemas, seed_data
+from . import models, routes, schemas, frontend_routes, seed_data
 
 # Create FastAPI instance
 app = FastAPI(
@@ -10,11 +12,17 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Include routes
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/frontend/static"), name="static")
+
+# Include API routes
 app.include_router(routes.users_router)
 app.include_router(routes.posts_router)
 app.include_router(routes.interactions_router)
 app.include_router(routes.feed_router)
+
+# Include frontend routes
+app.include_router(frontend_routes.frontend_router)
 
 # Health check endpoint
 @app.get("/health", response_model=schemas.HealthResponse)

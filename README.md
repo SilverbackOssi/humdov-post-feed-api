@@ -34,6 +34,31 @@ The API will be available at `http://localhost:8000`.
 
 API documentation (Swagger UI) will be available at `http://localhost:8000/docs`.
 
+## Frontend Interface
+
+The project includes a complete frontend interface that provides an intuitive demonstration of the post feed functionality. After starting the server, you can access the frontend at:
+
+**http://localhost:8000**
+
+### Frontend Features
+
+- **Twitter-inspired Design**: Clean, modern UI with blue (#006CFF) accents and gray backgrounds/text inspired by Humdov landing page
+- **User Selection**: Switch between different users to see personalized feeds
+- **Interactive Feed**: View posts with like/comment counts and interactions
+- **Create Posts**: Add new posts with tags through a user-friendly form
+- **User Profiles**: View individual user profiles and their posts
+- **Responsive Design**: Mobile-friendly layout that adapts to different screen sizes
+
+### Frontend Structure
+
+The frontend is built with:
+- **Templates**: Jinja2 templates with inheritance for consistent layout
+- **Static Assets**: CSS and JavaScript files served from `/static/`
+- **API Integration**: Frontend communicates with the backend API endpoints
+- **Real-time Updates**: Dynamic content loading and user interactions
+
+Note: The frontend uses a bundled approach with all assets served from the FastAPI application, making it easy to demonstrate the complete functionality without separate deployment.
+
 ## Seed Data
 
 To populate the database with sample data for testing and demonstration:
@@ -50,18 +75,28 @@ This will create:
 
 The seed data is designed to demonstrate the personalization algorithm by creating realistic user preferences and post interactions.
 
-Note: The app DB comes prepopulated
+Note: The app DB comes prepopulated, so you can go ahead with testing
 
 ## Running Tests
 
-Pytest-based tests:
+### Unit Tests (Pytest)
 ```
 pytest tests/pytest
 ```
 
-Request-based tests (requires server to be running):
+### Integration Tests (Requires running server)
 ```
+# Start the server first
+uvicorn app.main:app --reload
+
+# Then run integration tests in a separate terminal
 python -m tests.requests.test_endpoints
+
+# Run frontend integration tests
+python -m tests.requests.test_frontend
+
+# Optional: Run Selenium tests (requires ChromeDriver)
+python -m tests.requests.test_frontend --selenium
 ```
 
 ## API Endpoints
