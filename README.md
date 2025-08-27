@@ -50,6 +50,8 @@ This will create:
 
 The seed data is designed to demonstrate the personalization algorithm by creating realistic user preferences and post interactions.
 
+Note: The app DB comes prepopulated
+
 ## Running Tests
 
 Pytest-based tests:

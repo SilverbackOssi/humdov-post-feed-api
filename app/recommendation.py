@@ -2,11 +2,24 @@
 Feed recommendation logic for personalized content.
 """
 from typing import Dict, List, Set, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import Counter
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from . import models
+
+
+def _ensure_aware(dt: datetime) -> datetime:
+    """Return a timezone-aware datetime in UTC.
+
+    If dt is naive (tzinfo is None) assume UTC and attach timezone.utc.
+    """
+    if dt is None:
+        return datetime.now(timezone.utc)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 def calculate_tag_weights(user_id: int, db: Session) -> Dict[str, float]:
@@ -39,22 +52,22 @@ def calculate_tag_weights(user_id: int, db: Session) -> Dict[str, float]:
     # Extract tags from liked posts (weight = 1.0)
     liked_tags = [tag.name for post in liked_posts for tag in post.tags]
     
-    # Extract tags from commented posts (weight = 0.5)
+    # Extract tags from commented posts (weight = 2.0)
     commented_tags = [tag.name for post in commented_posts for tag in post.tags]
     
-    # Count tag occurrences with appropriate weights
-    tag_weights = Counter()
+    # Count tag occurrences with appropriate weights using float-friendly dict
+    tag_weights: Dict[str, float] = {}
     for tag in liked_tags:
-        tag_weights[tag] += 1.0
-    
+        tag_weights[tag] = tag_weights.get(tag, 0.0) + 1.0
+
     for tag in commented_tags:
-        tag_weights[tag] += 2.0
+        tag_weights[tag] = tag_weights.get(tag, 0.0) + 2.0
 
     # Normalize weights if there are any interactions
     total_weight = sum(tag_weights.values())
     if total_weight > 0:
-        for tag in tag_weights:
-            tag_weights[tag] /= total_weight
+        for tag in list(tag_weights.keys()):
+            tag_weights[tag] = tag_weights[tag] / total_weight
     
     return dict(tag_weights)
 
@@ -71,17 +84,18 @@ def get_user_interactions(user_id: int, db: Session) -> Tuple[Set[int], Set[int]
         Tuple of (liked_post_ids, commented_post_ids)
     """
     # Get all post IDs liked by the user
+    # Use SQLAlchemy 2.0 style select + execute to get scalar results
     liked_post_ids = set(
-        db.query(models.Like.post_id)
-        .filter(models.Like.user_id == user_id)
-        .scalar_all()
+        db.execute(
+            select(models.Like.post_id).where(models.Like.user_id == user_id)
+        ).scalars().all()
     )
     
     # Get all post IDs commented on by the user
     commented_post_ids = set(
-        db.query(models.Comment.post_id)
-        .filter(models.Comment.user_id == user_id)
-        .scalar_all()
+        db.execute(
+            select(models.Comment.post_id).where(models.Comment.user_id == user_id)
+        ).scalars().all()
     )
     
     return liked_post_ids, commented_post_ids
@@ -108,8 +122,10 @@ def calculate_post_score(post, tag_weights: Dict[str, float], now: datetime) -> 
         if tag in tag_weights:
             score += tag_weights[tag]
     
-    # Apply recency boost
-    days_old = (now - post.created_at).days
+    # Apply recency boost (normalize datetimes to avoid naive/aware mismatch)
+    now = _ensure_aware(now)
+    post_created = _ensure_aware(post.created_at)
+    days_old = (now - post_created).days
     decay_factor = 0.01  # 1% decay per day
     recency_multiplier = max(0.1, 1 - (decay_factor * days_old))
     

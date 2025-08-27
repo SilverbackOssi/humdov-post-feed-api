@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from .database import engine
-from . import models, routes, schemas
+from . import models, routes, schemas, seed_data
 
 # Create FastAPI instance
 app = FastAPI(
@@ -26,5 +26,6 @@ def health_check():
 @app.on_event("startup")
 async def startup_event():
     """Create all database tables on startup"""
-    models.Base.metadata.drop_all(bind=engine)
-    models.Base.metadata.create_all(bind=engine)
+    # models.Base.metadata.drop_all(bind=engine)
+    # models.Base.metadata.create_all(bind=engine)
+    seed_data.seed_database()

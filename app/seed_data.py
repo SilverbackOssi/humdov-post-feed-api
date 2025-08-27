@@ -60,7 +60,7 @@ def create_users(db):
         user = User(username=username)
         db.add(user)
         users.append(user)
-        print(f"Created user: {username}")
+        # print(f"Created user: {username}")
     
     db.commit()
     return users
@@ -74,7 +74,7 @@ def create_tags(db):
         tag = Tag(name=tag_name)
         db.add(tag)
         tags.append(tag)
-        print(f"Created tag: {tag_name}")
+        # print(f"Created tag: {tag_name}")
     
     db.commit()
     return tags
