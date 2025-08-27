@@ -189,6 +189,30 @@ The API implements a content-based filtering strategy for post recommendations:
    - **Cons**: Limited diversity, cold-start problems for new content
    - **Future Enhancements**: Could add TF-IDF for content analysis, collaborative filtering for cross-user recommendations, or ML-based embeddings for better content understanding
 
+## Project Trade-offs
+
+This project makes several design decisions that prioritize simplicity and rapid development over production readiness and scalability. Below are some key trade-offs:
+
+### Security and Authentication
+- **No Authentication or Authorization**: The API does not implement user authentication or authorization mechanisms. All endpoints are publicly accessible, which is suitable for development and demonstration but unsuitable for production environments where user data protection is required.
+- **No Rate Limiting or Security Policies**: There are no measures to prevent abuse, such as rate limiting, input validation beyond basic Pydantic models, or security headers. This could lead to vulnerabilities like denial-of-service attacks or data injection.
+
+### Database Design
+- **Simple Integer IDs Instead of UUIDs**: User and post IDs are simple integers, which are easier to work with in development but can lead to enumeration attacks and are less secure for public APIs.
+- **Manual Database Management**: The application explicitly drops and recreates tables on startup rather than using proper migration tools like Alembic. This is convenient for development but risks data loss and makes version control of database schema changes difficult.
+
+### Content Management
+- **Manual Tag Assignment**: Post tags are manually assigned by users rather than being automatically detected through natural language processing or machine learning. This ensures accuracy but requires more effort from users and may lead to inconsistent tagging.
+
+### Other Trade-offs
+- **SQLite Database**: Uses SQLite for simplicity and ease of setup, but it lacks the performance, concurrency, and features of production databases like PostgreSQL.
+- **In-Memory Frontend**: The frontend is served directly by FastAPI using Jinja2 templates, which is simple but may not scale well and lacks the interactivity of modern SPA frameworks.
+- **Limited Testing**: While unit tests are provided, there are no comprehensive integration tests for the frontend, and testing coverage may not be complete.
+- **No Caching or Optimization**: No caching mechanisms are implemented, which could lead to performance issues with larger datasets.
+- **No Containerization**: The project does not include Docker or similar containerization, making deployment and environment consistency harder.
+
+These trade-offs reflect the project's focus on being a proof-of-concept or development tool rather than a production-ready application.
+
 ## Database Schema
 
 The API uses SQLAlchemy with SQLite and includes the following models:
