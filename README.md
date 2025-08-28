@@ -44,7 +44,7 @@ API documentation (Swagger UI) will be available at `http://localhost:8000/docs`
 
 A live version of the API is hosted on Render for demonstration purposes:
 
-- **Base URL**: https://humdov-post-feed-api.onrender.com
+- **Base URL**: https://humdov-post-feed-api.onrender.com/api/v1
 - **API Documentation**: https://humdov-post-feed-api.onrender.com/docs
 - **Frontend Interface**: https://humdov-post-feed-api.onrender.com
 
