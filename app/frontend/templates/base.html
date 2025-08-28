@@ -17,7 +17,22 @@
                 <select id="userSelector">
                     <option value="1">Loading users...</option>
                 </select>
+                <button id="openCreateUserModal" class="btn btn-primary" style="margin-left: 10px;">+ Create User</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+        <div class="modal-content" style="background:#fff; padding:2rem; border-radius:8px; min-width:300px; max-width:90vw; margin:auto; position:relative;">
+            <span id="closeCreateUserModal" style="position:absolute; top:10px; right:16px; font-size:1.5rem; cursor:pointer;">&times;</span>
+            <h2>Create New User</h2>
+            <form id="createUserForm">
+                <label for="newUsername">Username:</label>
+                <input type="text" id="newUsername" name="newUsername" required style="width:100%; margin-bottom:1rem;">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <div id="createUserError" style="color:red; margin-top:0.5rem; display:none;"></div>
+            </form>
         </div>
     </div>
 

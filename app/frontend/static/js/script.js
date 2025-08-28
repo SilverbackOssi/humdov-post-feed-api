@@ -12,6 +12,61 @@ class PostFeedApp {
         this.updateProfileLink();
         this.loadUserSelector();
         this.loadCurrentPage();
+        this.initCreateUserModal();
+    }
+    
+    initCreateUserModal() {
+        const openBtn = document.getElementById('openCreateUserModal');
+        const modal = document.getElementById('createUserModal');
+        const closeBtn = document.getElementById('closeCreateUserModal');
+        const form = document.getElementById('createUserForm');
+        const errorDiv = document.getElementById('createUserError');
+        if (!openBtn || !modal || !closeBtn || !form) return;
+
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            errorDiv.style.display = 'none';
+            form.reset();
+        });
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = form.newUsername.value.trim();
+            if (!username) return;
+            try {
+                const res = await fetch('/api/v1/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                if (!res.ok) {
+                    const data = await res.json();
+                    errorDiv.textContent = data.detail || 'Error creating user.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                const user = await res.json();
+                modal.style.display = 'none';
+                // Add new user to selector and select
+                await this.loadUserSelector();
+                const selector = document.getElementById('userSelector');
+                if (selector) {
+                    selector.value = user.id;
+                    this.currentUserId = user.id;
+                    localStorage.setItem('currentUserId', user.id.toString());
+                    this.updateProfileLink();
+                    this.handleUserChange();
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Network error.';
+                errorDiv.style.display = 'block';
+            }
+        });
     }
     
     updateProfileLink() {
