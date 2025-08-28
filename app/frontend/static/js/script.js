@@ -133,50 +133,99 @@ class PostFeedApp {
         profileContainer.innerHTML = '<div class="loading">Loading profile...</div>';
 
         try {
-            // Load user data
-            const userResponse = await fetch(`/api/v1/users/${userId}`);
-            if (!userResponse.ok) throw new Error('User not found');
+            // Load comprehensive profile data using our new endpoint
+            const profileResponse = await fetch(`/api/v1/users/${userId}/profile`);
+            if (!profileResponse.ok) throw new Error('User not found');
+            const profile = await profileResponse.json();
             
-            const user = await userResponse.json();
-
-            // Load user's posts
-            const postsResponse = await fetch(`/api/v1/posts?creator_id=${userId}`);
+            // Load user's detailed posts with comment and like counts
+            const postsResponse = await fetch(`/api/v1/users/${userId}/detailed_posts`);
             const posts = postsResponse.ok ? await postsResponse.json() : [];
-
-            // Load user's likes
+            
+            // Load user's comments
+            const commentsResponse = await fetch(`/api/v1/users/${userId}/comments`);
+            const comments = commentsResponse.ok ? await commentsResponse.json() : [];
+            
+            // Load user's likes for the current viewer
             const likesResponse = await fetch(`/api/v1/likes/${userId}`);
             const likes = likesResponse.ok ? await likesResponse.json() : [];
+            
+            // Top tags directly from profile
+            const topTags = profile.top_tags || [];
+
+            // Avatar: use first letter of username or emoji
+            const avatar = profile.username ? profile.username[0].toUpperCase() : '👤';
+            // Join date: format nicely if available
+            let joinDate = profile.created_at ? this.formatDateLong(profile.created_at) : '';
 
             profileContainer.innerHTML = `
                 <div class="profile-header">
+                    <div class="profile-avatar">${avatar}</div>
                     <div class="profile-info">
-                        <div class="profile-username">${user.username}</div>
-                        <div class="profile-stats">
-                            <div class="stat">
-                                <span class="stat-number">${posts.length}</span> Posts
-                            </div>
-                            <div class="stat">
-                                <span class="stat-number">${likes.length}</span> Likes
-                            </div>
+                        <div class="profile-username">${profile.username}</div>
+                        <div class="profile-meta">
+                            <span>User ID: <b>${profile.id}</b></span>
+                            ${joinDate ? `&nbsp;|&nbsp; Joined: <b>${joinDate}</b>` : ''}
                         </div>
+                        <div class="profile-stats">
+                            <div class="stat"><span class="stat-icon">📝</span> <span class="stat-number">${profile.stats.post_count}</span> Posts</div>
+                            <div class="stat"><span class="stat-icon">❤️</span> <span class="stat-number">${profile.stats.like_count}</span> Likes Given</div>
+                            <div class="stat"><span class="stat-icon">💬</span> <span class="stat-number">${profile.stats.comment_count}</span> Comments</div>
+                            <div class="stat"><span class="stat-icon">🌟</span> <span class="stat-number">${profile.stats.likes_received}</span> Likes Received</div>
+                        </div>
+                        ${topTags && topTags.length > 0 ? `
+                        <div class="profile-tags">
+                            <span>Top tags:</span>
+                            ${topTags.map(tag => `<span class="tag">#${tag}</span>`).join(' ')}
+                        </div>` : ''}
                     </div>
                 </div>
-                <div id="userPosts">
+                
+                <div class="recent-posts-title">Recent Posts</div>
+                <ul class="recent-posts-list">
                     ${posts.length > 0 
-                        ? posts.map(post => this.renderPost(post)).join('')
+                        ? posts.slice(0, 5).map(post => `
+                            <li class="recent-post">
+                                <div class="recent-post-title">${this.escapeHtml(post.title)}</div>
+                                <div class="recent-post-content">${this.escapeHtml(post.content || '').slice(0, 120)}${post.content && post.content.length > 120 ? '...' : ''}</div>
+                                <div class="recent-post-meta">
+                                    ${this.formatDate(post.created_at)} &middot; 
+                                    <span class="interaction-count"><span class="icon">❤️</span> ${post.like_count}</span> &middot; 
+                                    <span class="interaction-count"><span class="icon">💬</span> ${post.comment_count}</span>
+                                    ${post.tags && post.tags.length > 0 ? ' &middot; ' + post.tags.map(tag => `<span class='tag'>#${tag}</span>`).join(' ') : ''}
+                                </div>
+                            </li>
+                        `).join('')
                         : '<div class="empty-state"><h3>No posts yet</h3><p>This user hasn\'t posted anything yet.</p></div>'
                     }
-                </div>
+                </ul>
+                
+                ${comments.length > 0 ? `
+                <div class="recent-posts-title">Recent Comments</div>
+                <ul class="recent-posts-list">
+                    ${comments.map(comment => `
+                        <li class="recent-post comment-item">
+                            <div class="recent-post-title">On post: ${this.escapeHtml(comment.post_title)}</div>
+                            <div class="recent-post-content">${this.escapeHtml(comment.content || '')}</div>
+                            <div class="recent-post-meta">${this.formatDate(comment.timestamp)}</div>
+                        </li>
+                    `).join('')}
+                </ul>
+                ` : ''}
             `;
 
             if (posts.length > 0) {
-                // Use the profile user ID for loading interactions, not this.currentUserId
                 this.loadPostInteractionsForProfile(posts, userId);
             }
         } catch (error) {
             console.error('Error loading profile:', error);
             profileContainer.innerHTML = '<div class="error">Error loading profile. Please try again.</div>';
         }
+    }
+
+    formatDateLong(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
     async loadPostInteractions(posts) {

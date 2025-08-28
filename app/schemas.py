@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserBase(BaseModel):
@@ -16,6 +16,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     """Schema for user responses"""
     id: int
+    created_at: Optional[datetime] = None  # User join date
 
     class Config:
         from_attributes = True

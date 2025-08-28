@@ -34,4 +34,4 @@ def health_check():
 @app.on_event("startup")
 async def startup_event():
     """Seed database tables on startup"""
-    seed_data.seed_database()
+    # seed_data.seed_database()

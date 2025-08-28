@@ -20,10 +20,12 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     
     # Relationships
     likes = relationship("Like", back_populates="user")
     comments = relationship("Comment", back_populates="user")
+    posts = relationship("Post", back_populates="creator")
 
 
 class Post(Base):
@@ -38,7 +40,7 @@ class Post(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     # Relationships
-    creator = relationship("User", backref="posts")
+    creator = relationship("User", back_populates="posts")
     tags = relationship("Tag", secondary=PostTag, back_populates="posts")
     likes = relationship("Like", back_populates="post")
     comments = relationship("Comment", back_populates="post")

@@ -5,7 +5,124 @@
 {% block content_title %}Profile{% endblock %}
 
 {% block content %}
-<div id="profileContainer">
+<div id="profileContainer" class="profile-container">
     <div class="loading">Loading profile...</div>
 </div>
+
+<style>
+.profile-container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    padding: 2.5rem 2rem 2rem 2rem;
+    margin-top: 2rem;
+}
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f0fdfa 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.7rem;
+    color: #6366f1;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+}
+.profile-info {
+    flex: 1;
+}
+.profile-username {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #22223b;
+}
+.profile-meta {
+    color: #6b7280;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+.profile-stats {
+    display: flex;
+    gap: 2.5rem;
+    margin-top: 0.5rem;
+}
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+.stat .stat-icon {
+    font-size: 1.2rem;
+}
+.profile-tags {
+    margin-top: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+.profile-tags .tag {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 12px;
+    padding: 0.25em 0.8em;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+    font-size: 0.98em;
+}
+.recent-posts-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    color: #3730a3;
+}
+.recent-posts-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.recent-post {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.1rem;
+    box-shadow: 0 1px 4px rgba(55,48,163,0.04);
+}
+.recent-post-title {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: #22223b;
+    margin-bottom: 0.2rem;
+}
+.recent-post-content {
+    color: #444;
+    font-size: 0.98rem;
+    margin-bottom: 0.2rem;
+}
+.recent-post-meta {
+    color: #6b7280;
+    font-size: 0.92rem;
+}
+.comment-item {
+    background: #f0f9ff;
+    border-left: 3px solid #38bdf8;
+}
+.interaction-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.interaction-count .icon {
+    font-size: 0.85rem;
+}
+</style>
 {% endblock %}

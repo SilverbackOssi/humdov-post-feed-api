@@ -34,6 +34,14 @@ The API will be available at `http://localhost:8000`.
 
 API documentation (Swagger UI) will be available at `http://localhost:8000/docs`.
 
+## Postman Collection
+
+A Postman collection is available for testing the API endpoints. You can access it here:
+
+- **Postman Documentation**: [Humdov Post Feed API Collection](https://documenter.getpostman.com/view/43614350/2sB3HgP3CE)
+
+This collection includes pre-configured requests for all available endpoints, making it easy to explore and test the API functionality.
+
 ## Hosted API
 
 A live version of the API is hosted on Render for demonstration purposes:
