@@ -22,6 +22,8 @@ A simple backend service using FastAPI that stores users and posts, records user
    ```
    pip install -r requirements.txt
    ```
+   This will install all required packages including FastAPI, SQLAlchemy, and the requests module needed for tests.
+   
 4. Copy `.env.example` to `.env` and adjust settings if needed
 
 ## Running the Server
@@ -101,16 +103,29 @@ Note: The app DB comes prepopulated, so you can go ahead with testing
 
 ## Running Tests
 
-### Unit Tests (Pytest)
-```
-pytest tests/pytest
-```
-
 ### API Request Tests (Integration Tests)
 
-These tests require the server to be running. You can run them using one of the provided scripts:
+These tests verify the API endpoints by making HTTP requests to the running server. The test script can automatically start the server if needed.
 
-#### Using the batch file (Windows):
+#### Using the Python script (Recommended):
+```
+# Basic API endpoint tests
+python run_api_tests.py
+
+# With verbose output (shows more details)
+python run_api_tests.py --verbose
+
+# Concurrent request tests (for stress testing)
+python run_api_tests.py --test-type concurrent
+
+# Run all tests (API + concurrent)
+python run_api_tests.py --test-type all
+
+# Add verbose flag to any test type
+python run_api_tests.py --test-type all --verbose
+```
+
+#### Using the batch file (Windows only):
 ```
 # Run basic API tests
 run_api_tests.bat
@@ -122,35 +137,33 @@ run_api_tests.bat --test-type concurrent
 run_api_tests.bat --test-type all
 ```
 
-#### Using the Python script (Cross-platform):
-```
-# Run basic API tests
-python run_api_tests.py
-
-# Run concurrent tests
-python run_api_tests.py --test-type concurrent
-
-# Run all tests
-python run_api_tests.py --test-type all
-
-# Add concurrent tests to any test type
-python run_api_tests.py --concurrent
-```
-
-#### Manual testing:
+#### Manual test execution:
 ```
 # Start the server first
 uvicorn app.main:app --reload
 
-# Then run integration tests in a separate terminal
-python -m tests.test_api_requests
+# Then run API tests in a separate terminal
+python -m unittest tests.test_api_requests
 
-# Run frontend integration tests
-python -m tests.requests.test_frontend
-
-# Optional: Run Selenium tests (requires ChromeDriver)
-python -m tests.requests.test_frontend --selenium
+# Run concurrent API tests
+python -m unittest tests.test_concurrent_requests
 ```
+
+### What the tests cover:
+
+1. **API Tests** (`test_api_requests.py`):
+   - User creation and retrieval
+   - Post creation and retrieval
+   - Like functionality (add/remove)
+   - Comment functionality
+   - Personalized feed generation
+   - Analytics endpoint
+
+2. **Concurrent Tests** (`test_concurrent_requests.py`):
+   - Multiple simultaneous post creation
+   - Concurrent like operations
+   - Concurrent read operations
+   - Mixed concurrent operations
 
 ## API Endpoints
 
@@ -278,3 +291,31 @@ The API uses SQLAlchemy with SQLite and includes the following models:
 - `Comment`: User comments on posts with content and timestamp
 
 Note: While primarily designed for local development, a hosted version is available on Render for demonstration purposes.
+
+## Test Coverage
+
+The test suite provides comprehensive verification of the API's functionality:
+
+### API Tests
+The API tests use the `requests` module to make HTTP calls to the running API server and verify the responses. These tests cover:
+
+- **User Management**: Creating users and handling duplicate usernames
+- **Post Management**: Creating and retrieving posts with tags
+- **Interactions**: Adding/removing likes and comments on posts
+- **Feed Generation**: Verifying personalized feed functionality based on user interactions
+- **Analytics**: Testing the analytics endpoint with real user activity
+
+### Concurrent Tests
+The concurrent tests evaluate the API's performance under load by simulating multiple simultaneous requests. These tests help identify potential issues related to:
+
+- **Race Conditions**: When multiple users interact with the same resources
+- **Database Locking**: Ensuring database operations work correctly under load
+- **Performance Bottlenecks**: Identifying slow endpoints under concurrent use
+
+### Test Output Interpretation
+When running tests, the output provides details about each test case:
+- `ok` indicates the test passed successfully
+- `FAIL` indicates the test found a discrepancy between expected and actual behavior
+- `ERROR` indicates an unexpected exception occurred during the test
+
+The test suite is designed to be robust against temporary failures and will provide helpful error messages when issues are encountered.

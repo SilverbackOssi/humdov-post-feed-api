@@ -233,9 +233,11 @@ class TestApiRequests(unittest.TestCase):
         # Feed should contain posts
         self.assertGreater(len(feed), 0)
         
-        # Each feed item should have a post and score
+        # The API returns the posts directly with a score field,
+        # not wrapped in a post object
         for item in feed:
-            self.assertIn("post", item)
+            self.assertIn("id", item)
+            self.assertIn("title", item)
             self.assertIn("score", item)
             
     def test_get_all_posts(self):
@@ -295,15 +297,23 @@ class TestApiRequests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         analytics = response.json()
         
-        # Should include counts for platform metrics
-        self.assertIn("user_count", analytics)
-        self.assertIn("post_count", analytics)
-        self.assertIn("comment_count", analytics)
-        self.assertIn("like_count", analytics)
-        self.assertGreaterEqual(analytics["user_count"], 2)  # At least our test users
-        self.assertGreaterEqual(analytics["post_count"], 2)  # At least our test posts
-        self.assertGreaterEqual(analytics["comment_count"], 1)  # Our test comment
-        self.assertGreaterEqual(analytics["like_count"], 1)  # Our test like
+        # Check the structure matches what the API returns
+        self.assertIn("total_counts", analytics)
+        self.assertIn("users", analytics["total_counts"])
+        self.assertIn("posts", analytics["total_counts"])
+        self.assertIn("comments", analytics["total_counts"])
+        self.assertIn("likes", analytics["total_counts"])
+        
+        # Also verify we have some of the expected analytics sections
+        self.assertIn("most_active_users", analytics)
+        self.assertIn("most_liked_posts", analytics)
+        self.assertIn("top_tags", analytics)
+        
+        # Verify the counts are reasonable
+        self.assertGreaterEqual(analytics["total_counts"]["users"], 2)  # At least our test users
+        self.assertGreaterEqual(analytics["total_counts"]["posts"], 2)  # At least our test posts
+        self.assertGreaterEqual(analytics["total_counts"]["comments"], 1)  # Our test comment
+        self.assertGreaterEqual(analytics["total_counts"]["likes"], 1)  # Our test like
 
 
 if __name__ == "__main__":
