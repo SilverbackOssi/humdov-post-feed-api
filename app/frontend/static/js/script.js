@@ -562,15 +562,41 @@ class PostFeedApp {
 class AnalyticsPage {
     constructor() {
         this.init();
+        this.bindEventListeners();
+    }
+
+    bindEventListeners() {
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshAnalytics');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.loadAnalytics());
+        }
     }
 
     async init() {
         // Check if we're on the analytics page
         if (window.location.pathname !== '/analytics') return;
         
+        // Initial load
+        this.loadAnalytics();
+    }
+    
+    async loadAnalytics() {
         try {
             // Show loading state
-            document.getElementById('loadingSpinner').style.display = 'flex';
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.style.display = 'flex';
+            }
+            
+            // Hide placeholders in tables
+            document.querySelectorAll('.placeholder-row').forEach(row => {
+                row.style.display = 'none';
+            });
+            
+            // Hide placeholders in tag cloud and chart
+            document.querySelector('.placeholder-tags')?.classList.add('hidden');
+            document.querySelector('.placeholder-bars')?.classList.add('hidden');
             
             // Fetch analytics data
             const response = await fetch('/api/v1/analytics');
@@ -586,12 +612,24 @@ class AnalyticsPage {
             this.renderPopularPosts(data.most_liked_posts);
             this.renderTagCloud(data.top_tags);
             this.renderActivityChart(data.activity_data);
+            this.renderMetrics(data.total_counts);
+            
+            // Add animation to make numbers count up
+            this.animateNumbers();
             
             // Hide loading spinner
-            document.getElementById('loadingSpinner').style.display = 'none';
+            if (spinner) {
+                spinner.style.display = 'none';
+            }
         } catch (error) {
             console.error('Error loading analytics:', error);
-            document.getElementById('loadingSpinner').textContent = 'Error loading analytics data. Please try again.';
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.innerHTML = `
+                    <div class="error-icon">❌</div>
+                    <div>Error loading analytics data. Please try again.</div>
+                `;
+            }
         }
     }
     
@@ -600,54 +638,87 @@ class AnalyticsPage {
         document.getElementById('totalPosts').textContent = this.formatNumber(counts.posts);
         document.getElementById('totalComments').textContent = this.formatNumber(counts.comments);
         document.getElementById('totalLikes').textContent = this.formatNumber(counts.likes);
+        
+        // Store raw values as data attributes for animation
+        document.getElementById('totalUsers').dataset.value = counts.users;
+        document.getElementById('totalPosts').dataset.value = counts.posts;
+        document.getElementById('totalComments').dataset.value = counts.comments;
+        document.getElementById('totalLikes').dataset.value = counts.likes;
     }
     
     renderActiveUsers(users) {
         const tableBody = document.getElementById('activeUsersTableBody');
+        if (!tableBody) return;
+        
         tableBody.innerHTML = users.length > 0 
             ? users.map(user => `
                 <tr>
                     <td>
                         <a href="/profile/${user.id}" class="user-link">
                             <span class="user-avatar">${user.username.charAt(0).toUpperCase()}</span>
-                            ${user.username}
+                            ${this.escapeHtml(user.username)}
                         </a>
                     </td>
                     <td>${user.post_count}</td>
                 </tr>
             `).join('')
-            : '<tr><td colspan="2">No active users found</td></tr>';
+            : '<tr><td colspan="2" class="empty-state">No active users found</td></tr>';
     }
     
     renderPopularPosts(posts) {
         const tableBody = document.getElementById('popularPostsTableBody');
+        if (!tableBody) return;
+        
         tableBody.innerHTML = posts.length > 0
             ? posts.map(post => `
                 <tr>
                     <td>
-                        <div class="post-title-cell">${this.escapeHtml(post.title)}</div>
+                        <div class="post-title-cell" title="${this.escapeHtml(post.title)}">${this.escapeHtml(post.title)}</div>
                     </td>
                     <td>${post.like_count}</td>
                 </tr>
             `).join('')
-            : '<tr><td colspan="2">No liked posts found</td></tr>';
+            : '<tr><td colspan="2" class="empty-state">No liked posts found</td></tr>';
     }
     
     renderTagCloud(tags) {
         const tagCloud = document.getElementById('tagCloud');
-        tagCloud.innerHTML = tags.length > 0
-            ? tags.map(tag => `
-                <div class="analytics-tag">
-                    #${tag.name}
+        if (!tagCloud) return;
+        
+        if (tags.length === 0) {
+            tagCloud.innerHTML = '<div class="empty-state">No tags found</div>';
+            return;
+        }
+        
+        // Sort tags by count (descending)
+        const sortedTags = [...tags].sort((a, b) => b.count - a.count);
+        
+        // Calculate font size based on tag count (min 12px, max 20px)
+        const minCount = Math.min(...sortedTags.map(tag => tag.count));
+        const maxCount = Math.max(...sortedTags.map(tag => tag.count));
+        const fontRange = maxCount - minCount;
+        
+        tagCloud.innerHTML = sortedTags.map(tag => {
+            // Calculate font size (between 14 and 24px)
+            const fontSize = fontRange > 0
+                ? 14 + ((tag.count - minCount) / fontRange) * 10
+                : 16;
+                
+            return `
+                <div class="analytics-tag" style="font-size: ${fontSize}px;">
+                    #${this.escapeHtml(tag.name)}
                     <span class="tag-count">${tag.count}</span>
                 </div>
-            `).join('')
-            : '<div class="empty-state">No tags found</div>';
+            `;
+        }).join('');
     }
     
     renderActivityChart(activityData) {
         const chartBars = document.getElementById('chartBars');
         const chartLabels = document.getElementById('chartLabels');
+        const maxValueEl = document.getElementById('maxValue');
+        
+        if (!chartBars || !chartLabels) return;
         
         if (!activityData || activityData.length === 0) {
             chartBars.innerHTML = '<div class="empty-state">No activity data available</div>';
@@ -656,12 +727,20 @@ class AnalyticsPage {
         
         // Find the maximum count for scaling
         const maxCount = Math.max(...activityData.map(day => day.count));
+        if (maxValueEl) {
+            maxValueEl.textContent = maxCount;
+        }
         
-        // Generate the bars
-        chartBars.innerHTML = activityData.map(day => {
+        // Generate the bars with animation delay
+        chartBars.innerHTML = activityData.map((day, index) => {
             const heightPercent = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+            const delay = index * 0.1; // Staggered animation
+            
             return `
-                <div class="chart-bar" style="height: ${heightPercent}%;" title="${day.count} posts on ${day.date}">
+                <div class="chart-bar" 
+                     style="height: 0%; animation: grow-bar 1s ease forwards ${delay}s;" 
+                     data-height="${heightPercent}" 
+                     title="${day.count} posts on ${day.date}">
                     <span class="bar-value">${day.count}</span>
                 </div>
             `;
@@ -674,6 +753,79 @@ class AnalyticsPage {
             const formattedDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
             return `<div class="chart-label">${formattedDate}</div>`;
         }).join('');
+        
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes grow-bar {
+                from { height: 0%; }
+                to { height: var(--target-height); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Set the target height for animation
+        setTimeout(() => {
+            document.querySelectorAll('.chart-bar').forEach(bar => {
+                const height = bar.dataset.height + '%';
+                bar.style.setProperty('--target-height', height);
+            });
+        }, 50);
+    }
+    
+    renderMetrics(counts) {
+        // Calculate derived metrics
+        const engagementRate = (counts.likes + counts.comments) / Math.max(counts.posts, 1);
+        const avgLikesPerPost = counts.likes / Math.max(counts.posts, 1);
+        const avgCommentsPerPost = counts.comments / Math.max(counts.posts, 1);
+        const postsPerUser = counts.posts / Math.max(counts.users, 1);
+        
+        // Display metrics
+        document.getElementById('engagementRate')?.setAttribute('data-value', engagementRate.toFixed(2));
+        document.getElementById('avgLikesPerPost')?.setAttribute('data-value', avgLikesPerPost.toFixed(2));
+        document.getElementById('avgCommentsPerPost')?.setAttribute('data-value', avgCommentsPerPost.toFixed(2));
+        document.getElementById('postsPerUser')?.setAttribute('data-value', postsPerUser.toFixed(2));
+        
+        document.getElementById('engagementRate').textContent = engagementRate.toFixed(2);
+        document.getElementById('avgLikesPerPost').textContent = avgLikesPerPost.toFixed(2);
+        document.getElementById('avgCommentsPerPost').textContent = avgCommentsPerPost.toFixed(2);
+        document.getElementById('postsPerUser').textContent = postsPerUser.toFixed(2);
+    }
+    
+    animateNumbers() {
+        // Animate numbers counting up
+        document.querySelectorAll('[data-value]').forEach(el => {
+            const target = parseFloat(el.dataset.value);
+            const duration = 1500; // 1.5 seconds
+            const startTime = performance.now();
+            const startValue = 0;
+            
+            // Skip animation for small numbers
+            if (target < 10) {
+                el.textContent = this.formatNumber(target);
+                return;
+            }
+            
+            const updateNumber = (currentTime) => {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutQuad = progress => 1 - (1 - progress) * (1 - progress);
+                const easedProgress = easeOutQuad(progress);
+                
+                const currentValue = Math.floor(startValue + (target - startValue) * easedProgress);
+                el.textContent = this.formatNumber(currentValue);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                } else {
+                    el.textContent = this.formatNumber(target);
+                }
+            };
+            
+            requestAnimationFrame(updateNumber);
+        });
     }
     
     formatNumber(num) {

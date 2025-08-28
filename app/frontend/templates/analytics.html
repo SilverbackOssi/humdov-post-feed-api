@@ -1,96 +1,230 @@
 {% extends "base.html" %}
 
-{% block title %}Analytics - Humdov Post Feed{% endblock %}
+{% block title %}Analytics Dashboard - Humdov Post Feed{% endblock %}
 
-{% block content_title %}Platform Analytics{% endblock %}
+{% block content_title %}Analytics Dashboard{% endblock %}
 
 {% block content %}
 <div class="analytics-container">
-    <div class="loading-spinner" id="loadingSpinner">Loading analytics data...</div>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-animation"></div>
+        <div class="spinner-text">Loading analytics data...</div>
+    </div>
 
-    <!-- Total counts section -->
+    <!-- Header with refresh button -->
+    <div class="analytics-header">
+        <div class="analytics-title">
+            <h1>Platform Insights</h1>
+            <p class="subtitle">Overview of platform activity and engagement metrics</p>
+        </div>
+        <button id="refreshAnalytics" class="btn btn-secondary">
+            <span class="icon">🔄</span> Refresh Data
+        </button>
+    </div>
+
+    <!-- Total counts section with improved cards -->
     <div class="analytics-section" id="totalCounts">
         <h2 class="section-title">Platform Overview</h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">👤</div>
+                <div class="stat-header">
+                    <div class="stat-icon users-icon">👤</div>
+                    <div class="stat-trend positive">
+                        <span class="trend-icon">↗</span>
+                    </div>
+                </div>
                 <div class="stat-value" id="totalUsers">0</div>
-                <div class="stat-label">Users</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-footer">Platform members</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📝</div>
+                <div class="stat-header">
+                    <div class="stat-icon posts-icon">📝</div>
+                    <div class="stat-trend positive">
+                        <span class="trend-icon">↗</span>
+                    </div>
+                </div>
                 <div class="stat-value" id="totalPosts">0</div>
-                <div class="stat-label">Posts</div>
+                <div class="stat-label">Total Posts</div>
+                <div class="stat-footer">Content pieces</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">💬</div>
+                <div class="stat-header">
+                    <div class="stat-icon comments-icon">💬</div>
+                    <div class="stat-trend positive">
+                        <span class="trend-icon">↗</span>
+                    </div>
+                </div>
                 <div class="stat-value" id="totalComments">0</div>
-                <div class="stat-label">Comments</div>
+                <div class="stat-label">Total Comments</div>
+                <div class="stat-footer">Community discussions</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">❤️</div>
+                <div class="stat-header">
+                    <div class="stat-icon likes-icon">❤️</div>
+                    <div class="stat-trend positive">
+                        <span class="trend-icon">↗</span>
+                    </div>
+                </div>
                 <div class="stat-value" id="totalLikes">0</div>
-                <div class="stat-label">Likes</div>
+                <div class="stat-label">Total Likes</div>
+                <div class="stat-footer">Content reactions</div>
             </div>
         </div>
     </div>
 
-    <!-- Top users section -->
-    <div class="analytics-section" id="topUsers">
-        <h2 class="section-title">Most Active Users</h2>
-        <div class="analytics-table-container">
-            <table class="analytics-table">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Posts</th>
-                    </tr>
-                </thead>
-                <tbody id="activeUsersTableBody">
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
+    <!-- Two-column layout for users and posts -->
+    <div class="analytics-grid">
+        <!-- Top users section -->
+        <div class="analytics-section" id="topUsers">
+            <div class="section-header">
+                <h2 class="section-title">Most Active Users</h2>
+                <span class="section-icon">👥</span>
+            </div>
+            <div class="analytics-table-container">
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Posts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeUsersTableBody">
+                        <!-- Data will be inserted here -->
+                        <tr class="placeholder-row">
+                            <td colspan="2"><div class="placeholder-shimmer"></div></td>
+                        </tr>
+                        <tr class="placeholder-row">
+                            <td colspan="2"><div class="placeholder-shimmer"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="section-footer">
+                Top contributors ranked by post count
+            </div>
+        </div>
+
+        <!-- Top posts section -->
+        <div class="analytics-section" id="topPosts">
+            <div class="section-header">
+                <h2 class="section-title">Most Popular Posts</h2>
+                <span class="section-icon">🏆</span>
+            </div>
+            <div class="analytics-table-container">
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Likes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="popularPostsTableBody">
+                        <!-- Data will be inserted here -->
+                        <tr class="placeholder-row">
+                            <td colspan="2"><div class="placeholder-shimmer"></div></td>
+                        </tr>
+                        <tr class="placeholder-row">
+                            <td colspan="2"><div class="placeholder-shimmer"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="section-footer">
+                Top content ranked by number of likes
+            </div>
         </div>
     </div>
 
-    <!-- Top posts section -->
-    <div class="analytics-section" id="topPosts">
-        <h2 class="section-title">Most Popular Posts</h2>
-        <div class="analytics-table-container">
-            <table class="analytics-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Likes</th>
-                    </tr>
-                </thead>
-                <tbody id="popularPostsTableBody">
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Tag distribution -->
+    <!-- Tag distribution with improved design -->
     <div class="analytics-section" id="tagDistribution">
-        <h2 class="section-title">Popular Tags</h2>
+        <div class="section-header">
+            <h2 class="section-title">Trending Topics</h2>
+            <span class="section-icon">#️⃣</span>
+        </div>
+        <div class="tag-description">Most popular tags across all posts</div>
         <div class="tag-cloud" id="tagCloud">
             <!-- Tag cloud will be inserted here -->
+            <div class="placeholder-tags">
+                <div class="placeholder-tag"></div>
+                <div class="placeholder-tag"></div>
+                <div class="placeholder-tag"></div>
+                <div class="placeholder-tag"></div>
+                <div class="placeholder-tag"></div>
+            </div>
+        </div>
+        <div class="section-footer">
+            Based on all post tags across the platform
         </div>
     </div>
 
-    <!-- Activity over time -->
+    <!-- Activity over time with improved chart -->
     <div class="analytics-section" id="activityOverTime">
-        <h2 class="section-title">Activity (Last 7 Days)</h2>
+        <div class="section-header">
+            <h2 class="section-title">Activity Trends</h2>
+            <span class="section-icon">📈</span>
+        </div>
+        <div class="chart-description">Post activity over the last 7 days</div>
         <div class="chart-container" id="activityChart">
-            <!-- Simple chart will be rendered here -->
             <div class="chart-placeholder">
-                <div class="chart-bars" id="chartBars">
-                    <!-- Bars will be inserted here -->
+                <div class="chart-y-axis">
+                    <div class="chart-y-label" id="maxValue">0</div>
+                    <div class="chart-y-label">0</div>
                 </div>
-                <div class="chart-labels" id="chartLabels">
-                    <!-- Labels will be inserted here -->
+                <div class="chart-content">
+                    <div class="chart-bars" id="chartBars">
+                        <!-- Bars will be inserted here -->
+                        <div class="placeholder-bars">
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                            <div class="placeholder-bar"></div>
+                        </div>
+                    </div>
+                    <div class="chart-labels" id="chartLabels">
+                        <!-- Labels will be inserted here -->
+                    </div>
+                    <div class="chart-grid">
+                        <div class="chart-grid-line"></div>
+                        <div class="chart-grid-line"></div>
+                        <div class="chart-grid-line"></div>
+                    </div>
                 </div>
+            </div>
+        </div>
+        <div class="section-footer">
+            Daily post counts show platform engagement
+        </div>
+    </div>
+
+    <!-- Summary metrics -->
+    <div class="analytics-section" id="summarySummary">
+        <div class="section-header">
+            <h2 class="section-title">Platform Health</h2>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="engagementRate">--</div>
+                <div class="metric-label">Engagement Rate</div>
+                <div class="metric-formula">Likes + Comments / Posts</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgLikesPerPost">--</div>
+                <div class="metric-label">Avg. Likes Per Post</div>
+                <div class="metric-formula">Total Likes / Total Posts</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgCommentsPerPost">--</div>
+                <div class="metric-label">Avg. Comments Per Post</div>
+                <div class="metric-formula">Total Comments / Total Posts</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="postsPerUser">--</div>
+                <div class="metric-label">Posts Per User</div>
+                <div class="metric-formula">Total Posts / Total Users</div>
             </div>
         </div>
     </div>
