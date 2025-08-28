@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Use DATABASE_URL from environment variables or default to in-memory SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///humdov.db")
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)

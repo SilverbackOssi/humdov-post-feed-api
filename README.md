@@ -33,16 +33,10 @@ fastapi dev app\main.py
 ```
 
 The API will be available at `http://localhost:8000`.
+You can interact with the frontend for a better experience
 
 API documentation (Swagger UI) will be available at `http://localhost:8000/docs`.
 
-## Postman Collection
-
-A Postman collection is available for testing the API endpoints. You can access it here:
-
-- **Postman Documentation**: [Humdov Post Feed API Collection](https://documenter.getpostman.com/view/43614350/2sB3HgP3CE)
-
-This collection includes pre-configured requests for all available endpoints, making it easy to explore and test the API functionality.
 
 ## Hosted API
 
@@ -51,6 +45,14 @@ A live version of the API is hosted on Render for demonstration purposes:
 - **Base URL**: https://humdov-post-feed-api.onrender.com
 - **API Documentation**: https://humdov-post-feed-api.onrender.com/docs
 - **Frontend Interface**: https://humdov-post-feed-api.onrender.com
+
+## Postman Collection
+
+A Postman collection is available for testing the API endpoints. You can access it here:
+
+- **Postman Documentation**: [Humdov Post Feed API Collection](https://documenter.getpostman.com/view/43614350/2sB3HgP3CE)
+
+This collection includes pre-configured requests for all available endpoints, making it easy to explore and test the API functionality.
 
 Note: The hosted version uses the same endpoints as the local version but may have limitations due to the free tier hosting (e.g., potential cold starts, limited concurrent connections).
 
@@ -104,13 +106,44 @@ Note: The app DB comes prepopulated, so you can go ahead with testing
 pytest tests/pytest
 ```
 
-### Integration Tests (Requires running server)
+### API Request Tests (Integration Tests)
+
+These tests require the server to be running. You can run them using one of the provided scripts:
+
+#### Using the batch file (Windows):
+```
+# Run basic API tests
+run_api_tests.bat
+
+# Run concurrent tests
+run_api_tests.bat --test-type concurrent
+
+# Run all tests
+run_api_tests.bat --test-type all
+```
+
+#### Using the Python script (Cross-platform):
+```
+# Run basic API tests
+python run_api_tests.py
+
+# Run concurrent tests
+python run_api_tests.py --test-type concurrent
+
+# Run all tests
+python run_api_tests.py --test-type all
+
+# Add concurrent tests to any test type
+python run_api_tests.py --concurrent
+```
+
+#### Manual testing:
 ```
 # Start the server first
 uvicorn app.main:app --reload
 
 # Then run integration tests in a separate terminal
-python -m tests.requests.test_endpoints
+python -m tests.test_api_requests
 
 # Run frontend integration tests
 python -m tests.requests.test_frontend
