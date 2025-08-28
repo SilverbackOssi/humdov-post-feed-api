@@ -99,7 +99,8 @@ This will create:
 
 The seed data is designed to demonstrate the personalization algorithm by creating realistic user preferences and post interactions.
 
-Note: The app DB comes prepopulated, so you can go ahead with testing
+Note: The app DB comes prepopulated, so you can go ahead with testing. Seeding again might create duplicates.
+
 
 ## Running Tests
 
