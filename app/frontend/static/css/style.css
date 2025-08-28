@@ -494,6 +494,105 @@ body {
 /* Analytics page styles */
 .analytics-container {
   padding: 20px 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+/* Dashboard grid layout */
+@media (min-width: 1200px) {
+  .analytics-container {
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-areas: 
+      "header header header header header header header header header header header header"
+      "counts counts counts counts counts counts counts counts counts counts counts counts"
+      "users users users users users users posts posts posts posts posts posts"
+      "tags tags tags tags tags tags chart chart chart chart chart chart"
+      "metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics";
+  }
+}
+
+/* Alternative layout for large screens but not extra large */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .analytics-container {
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-areas: 
+      "header header header header header header header header header header header header"
+      "counts counts counts counts counts counts counts counts counts counts counts counts"
+      "users users users users users users posts posts posts posts posts posts"
+      "tags tags tags tags tags tags tags tags chart chart chart chart"
+      "metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics metrics";
+  }
+}
+  
+  .analytics-header {
+    grid-area: header;
+  }
+  
+  #totalCounts {
+    grid-area: counts;
+  }
+  
+  #topUsers {
+    grid-area: users;
+  }
+  
+  #topPosts {
+    grid-area: posts;
+  }
+  
+  #tagDistribution {
+    grid-area: tags;
+  }
+  
+  #activityOverTime {
+    grid-area: chart;
+  }
+  
+  #summarySummary {
+    grid-area: metrics;
+  }
+}
+
+/* Tighter three-column layout for medium screens */
+@media (min-width: 768px) and (max-width: 991px) {
+  .analytics-container {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-areas: 
+      "header header header header header header"
+      "counts counts counts counts counts counts"
+      "users users users posts posts posts"
+      "tags tags tags chart chart chart"
+      "metrics metrics metrics metrics metrics metrics";
+  }
+  
+  .analytics-header {
+    grid-area: header;
+  }
+  
+  #totalCounts {
+    grid-area: counts;
+  }
+  
+  #topUsers {
+    grid-area: users;
+  }
+  
+  #topPosts {
+    grid-area: posts;
+  }
+  
+  #tagDistribution {
+    grid-area: tags;
+  }
+  
+  #activityOverTime {
+    grid-area: chart;
+  }
+  
+  #summarySummary {
+    grid-area: metrics;
+  }
 }
 
 .loading-spinner {
@@ -504,6 +603,19 @@ body {
   padding: 40px;
   color: var(--text-gray);
   gap: 16px;
+  grid-column: 1 / -1; /* Span all columns */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px); /* Safari support */
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 200px;
+  min-height: 200px;
 }
 
 .spinner-animation {
@@ -529,7 +641,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  width: 100%;
+  margin-bottom: 0; /* Remove margin since we have grid gap */
 }
 
 .analytics-title h1 {
@@ -550,8 +663,39 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   padding: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 0; /* Remove margin since we have grid gap */
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%; /* Make all sections fill their grid area height */
+  display: flex;
+  flex-direction: column; /* Stack content vertically within each section */
+  min-height: 300px; /* Minimum height for all sections */
+  overflow: hidden; /* Prevent content overflow */
+}
+
+/* Set specific minimum heights for different section types */
+#totalCounts {
+  min-height: 220px;
+}
+
+#topUsers, #topPosts {
+  min-height: 380px;
+}
+
+#tagDistribution {
+  min-height: 320px;
+}
+
+#activityOverTime {
+  min-height: 320px;
+}
+
+#summarySummary {
+  min-height: 200px;
+}
+
+/* Add a subtle border to visually separate grid items */
+.analytics-section {
+  border: 1px solid rgba(0, 108, 255, 0.1);
 }
 
 .analytics-section:hover {
@@ -588,17 +732,9 @@ body {
   font-style: italic;
 }
 
-/* Two-column layout */
+/* Remove the analytics-grid class since we're using grid areas in the container */
 .analytics-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-}
-
-@media (min-width: 768px) {
-  .analytics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  display: contents; /* This makes the child elements behave as direct children of the parent grid */
 }
 
 /* Stats cards */
@@ -735,6 +871,9 @@ body {
   overflow-x: auto;
   background: var(--background-gray);
   border-radius: 8px;
+  flex: 1; /* Make it expand to fill available space */
+  display: flex;
+  flex-direction: column;
 }
 
 .analytics-table {
@@ -822,6 +961,8 @@ body {
   gap: 12px;
   padding: 16px 0;
   justify-content: center;
+  flex: 1; /* Make it expand to fill available space */
+  align-content: center; /* Center tags vertically */
 }
 
 .analytics-tag {
@@ -860,6 +1001,8 @@ body {
   height: 250px;
   margin-top: 20px;
   position: relative;
+  flex: 1; /* Make it expand to fill available space */
+  min-height: 200px;
 }
 
 .chart-placeholder {

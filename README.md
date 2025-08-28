@@ -29,7 +29,7 @@ A simple backend service using FastAPI that stores users and posts, records user
 ```
 uvicorn app.main:app --reload
 or
-fastapi run app\main.py
+fastapi dev app\main.py
 ```
 
 The API will be available at `http://localhost:8000`.
