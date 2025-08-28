@@ -2,14 +2,24 @@
 
 class PostFeedApp {
     constructor() {
-        this.currentUserId = 1; // Default user
+        // Load current user ID from localStorage or use default (1)
+        this.currentUserId = parseInt(localStorage.getItem('currentUserId') || '1');
         this.init();
     }
 
     init() {
         this.bindEventListeners();
+        this.updateProfileLink();
         this.loadUserSelector();
         this.loadCurrentPage();
+    }
+    
+    updateProfileLink() {
+        // Update the profile link to point to the current user
+        const profileLink = document.getElementById('profileLink');
+        if (profileLink) {
+            profileLink.href = `/profile/${this.currentUserId}`;
+        }
     }
 
     bindEventListeners() {
@@ -18,6 +28,10 @@ class PostFeedApp {
         if (userSelector) {
             userSelector.addEventListener('change', (e) => {
                 this.currentUserId = parseInt(e.target.value);
+                // Save the user ID to localStorage
+                localStorage.setItem('currentUserId', this.currentUserId.toString());
+                // Update the profile link
+                this.updateProfileLink();
                 this.handleUserChange();
             });
         }
@@ -33,8 +47,12 @@ class PostFeedApp {
 
         // Delegate event listeners for dynamic content
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('like-btn')) {
-                this.handleLike(e.target);
+            // Handle like button clicks, including when icon is clicked
+            if (e.target.classList.contains('like-btn') || 
+                (e.target.parentElement && e.target.parentElement.classList.contains('like-btn'))) {
+                // Get the actual button element
+                const button = e.target.classList.contains('like-btn') ? e.target : e.target.parentElement;
+                this.handleLike(button);
             } else if (e.target.classList.contains('comment-submit')) {
                 this.handleCommentSubmit(e.target);
             }
@@ -64,6 +82,9 @@ class PostFeedApp {
                             ${user.username}
                         </option>`
                     ).join('');
+                    
+                    // Force the selector to match the current user ID (fixes browser cache issues)
+                    selector.value = this.currentUserId;
                 }
             }
         } catch (error) {
@@ -242,6 +263,9 @@ class PostFeedApp {
                     if (likeBtn) {
                         likeBtn.classList.toggle('liked', hasLiked);
                         likeBtn.innerHTML = `<span class="icon">${hasLiked ? '❤️' : '🤍'}</span> Like`;
+                        console.log(`Post ${post.id} like state: ${hasLiked ? 'liked' : 'not liked'}`);
+                    } else {
+                        console.warn(`Like button not found for post ${post.id}`);
                     }
                 }
 
@@ -344,7 +368,12 @@ class PostFeedApp {
     }
 
     async handleLike(button) {
-        const postId = parseInt(button.dataset.postId);
+        // Get post ID from data attribute (support both camelCase and kebab-case)
+        const postId = parseInt(button.dataset.postId || button.dataset.postId || button.getAttribute('data-post-id'));
+        if (!postId) {
+            console.error('Post ID not found on like button', button);
+            return;
+        }
         const isLiked = button.classList.contains('liked');
 
         try {
@@ -361,11 +390,25 @@ class PostFeedApp {
             });
 
             if (response.ok) {
-                button.classList.toggle('liked');
-                button.innerHTML = `<span class="icon">${isLiked ? '🤍' : '❤️'}</span> Like`;
+                // Toggle the liked state
+                const newIsLiked = !isLiked;
+                button.classList.toggle('liked', newIsLiked);
+                button.innerHTML = `<span class="icon">${newIsLiked ? '❤️' : '🤍'}</span> Like`;
+                
+                // Log success for debugging
+                console.log(`Successfully ${newIsLiked ? 'liked' : 'unliked'} post ${postId}`);
             } else {
-                const error = await response.json();
-                this.showError(error.detail || 'Failed to update like');
+                // Handle error response
+                let errorMessage = 'Failed to update like';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.detail || errorMessage;
+                } catch (e) {
+                    // If response is not JSON
+                    errorMessage = `${response.status}: ${response.statusText}`;
+                }
+                console.error('Like API error:', errorMessage);
+                this.showError(errorMessage);
             }
         } catch (error) {
             console.error('Error handling like:', error);
@@ -451,10 +494,10 @@ class PostFeedApp {
             if (response.ok) {
                 this.showSuccess('Post created successfully!');
                 form.reset();
-                // Redirect to home page after a short delay
+                // Redirect to user's profile page after a short delay
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1500);
+                    window.location.href = `/profile/${this.currentUserId}`;
+                }, 1000);
             } else {
                 const error = await response.json();
                 this.showError(error.detail || 'Failed to create post');
@@ -515,7 +558,143 @@ class PostFeedApp {
     }
 }
 
+// Analytics functionality
+class AnalyticsPage {
+    constructor() {
+        this.init();
+    }
+
+    async init() {
+        // Check if we're on the analytics page
+        if (window.location.pathname !== '/analytics') return;
+        
+        try {
+            // Show loading state
+            document.getElementById('loadingSpinner').style.display = 'flex';
+            
+            // Fetch analytics data
+            const response = await fetch('/api/v1/analytics');
+            if (!response.ok) {
+                throw new Error('Failed to load analytics data');
+            }
+            
+            const data = await response.json();
+            
+            // Render analytics components
+            this.renderTotalCounts(data.total_counts);
+            this.renderActiveUsers(data.most_active_users);
+            this.renderPopularPosts(data.most_liked_posts);
+            this.renderTagCloud(data.top_tags);
+            this.renderActivityChart(data.activity_data);
+            
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+            document.getElementById('loadingSpinner').textContent = 'Error loading analytics data. Please try again.';
+        }
+    }
+    
+    renderTotalCounts(counts) {
+        document.getElementById('totalUsers').textContent = this.formatNumber(counts.users);
+        document.getElementById('totalPosts').textContent = this.formatNumber(counts.posts);
+        document.getElementById('totalComments').textContent = this.formatNumber(counts.comments);
+        document.getElementById('totalLikes').textContent = this.formatNumber(counts.likes);
+    }
+    
+    renderActiveUsers(users) {
+        const tableBody = document.getElementById('activeUsersTableBody');
+        tableBody.innerHTML = users.length > 0 
+            ? users.map(user => `
+                <tr>
+                    <td>
+                        <a href="/profile/${user.id}" class="user-link">
+                            <span class="user-avatar">${user.username.charAt(0).toUpperCase()}</span>
+                            ${user.username}
+                        </a>
+                    </td>
+                    <td>${user.post_count}</td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="2">No active users found</td></tr>';
+    }
+    
+    renderPopularPosts(posts) {
+        const tableBody = document.getElementById('popularPostsTableBody');
+        tableBody.innerHTML = posts.length > 0
+            ? posts.map(post => `
+                <tr>
+                    <td>
+                        <div class="post-title-cell">${this.escapeHtml(post.title)}</div>
+                    </td>
+                    <td>${post.like_count}</td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="2">No liked posts found</td></tr>';
+    }
+    
+    renderTagCloud(tags) {
+        const tagCloud = document.getElementById('tagCloud');
+        tagCloud.innerHTML = tags.length > 0
+            ? tags.map(tag => `
+                <div class="analytics-tag">
+                    #${tag.name}
+                    <span class="tag-count">${tag.count}</span>
+                </div>
+            `).join('')
+            : '<div class="empty-state">No tags found</div>';
+    }
+    
+    renderActivityChart(activityData) {
+        const chartBars = document.getElementById('chartBars');
+        const chartLabels = document.getElementById('chartLabels');
+        
+        if (!activityData || activityData.length === 0) {
+            chartBars.innerHTML = '<div class="empty-state">No activity data available</div>';
+            return;
+        }
+        
+        // Find the maximum count for scaling
+        const maxCount = Math.max(...activityData.map(day => day.count));
+        
+        // Generate the bars
+        chartBars.innerHTML = activityData.map(day => {
+            const heightPercent = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+            return `
+                <div class="chart-bar" style="height: ${heightPercent}%;" title="${day.count} posts on ${day.date}">
+                    <span class="bar-value">${day.count}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // Generate the date labels
+        chartLabels.innerHTML = activityData.map(day => {
+            // Format the date to show only day and month
+            const date = new Date(day.date);
+            const formattedDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            return `<div class="chart-label">${formattedDate}</div>`;
+        }).join('');
+    }
+    
+    formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+}
+
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new PostFeedApp();
+    new AnalyticsPage();
 });

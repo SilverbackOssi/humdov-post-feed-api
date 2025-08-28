@@ -20,6 +20,7 @@ app.include_router(routes.users_router)
 app.include_router(routes.posts_router)
 app.include_router(routes.interactions_router)
 app.include_router(routes.feed_router)
+app.include_router(routes.analytics_router)
 
 # Include frontend routes
 app.include_router(frontend_routes.frontend_router)

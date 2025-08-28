@@ -33,7 +33,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/profile/1" class="{% if request.url.path.startswith('/profile/') %}active{% endif %}">
+                        <a href="#" id="profileLink" class="{% if request.url.path.startswith('/profile/') %}active{% endif %}">
                             <span class="icon">👤</span>
                             <span class="text">Profile</span>
                         </a>
@@ -42,6 +42,12 @@
                         <a href="/new_post" class="{% if request.url.path == '/new_post' %}active{% endif %}">
                             <span class="icon">✏️</span>
                             <span class="text">New Post</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/analytics" class="{% if request.url.path == '/analytics' %}active{% endif %}">
+                            <span class="icon">📊</span>
+                            <span class="text">Analytics</span>
                         </a>
                     </li>
                 </ul>

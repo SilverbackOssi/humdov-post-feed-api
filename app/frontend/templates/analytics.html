@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Humdov Post Feed{% endblock %}
+
+{% block content_title %}Platform Analytics{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <div class="loading-spinner" id="loadingSpinner">Loading analytics data...</div>
+
+    <!-- Total counts section -->
+    <div class="analytics-section" id="totalCounts">
+        <h2 class="section-title">Platform Overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-value" id="totalPosts">0</div>
+                <div class="stat-label">Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-value" id="totalComments">0</div>
+                <div class="stat-label">Comments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">❤️</div>
+                <div class="stat-value" id="totalLikes">0</div>
+                <div class="stat-label">Likes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top users section -->
+    <div class="analytics-section" id="topUsers">
+        <h2 class="section-title">Most Active Users</h2>
+        <div class="analytics-table-container">
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Posts</th>
+                    </tr>
+                </thead>
+                <tbody id="activeUsersTableBody">
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top posts section -->
+    <div class="analytics-section" id="topPosts">
+        <h2 class="section-title">Most Popular Posts</h2>
+        <div class="analytics-table-container">
+            <table class="analytics-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Likes</th>
+                    </tr>
+                </thead>
+                <tbody id="popularPostsTableBody">
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tag distribution -->
+    <div class="analytics-section" id="tagDistribution">
+        <h2 class="section-title">Popular Tags</h2>
+        <div class="tag-cloud" id="tagCloud">
+            <!-- Tag cloud will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Activity over time -->
+    <div class="analytics-section" id="activityOverTime">
+        <h2 class="section-title">Activity (Last 7 Days)</h2>
+        <div class="chart-container" id="activityChart">
+            <!-- Simple chart will be rendered here -->
+            <div class="chart-placeholder">
+                <div class="chart-bars" id="chartBars">
+                    <!-- Bars will be inserted here -->
+                </div>
+                <div class="chart-labels" id="chartLabels">
+                    <!-- Labels will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

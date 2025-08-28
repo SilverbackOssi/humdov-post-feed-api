@@ -15,6 +15,7 @@ users_router = APIRouter(prefix="/api/v1", tags=["Users"])
 posts_router = APIRouter(prefix="/api/v1", tags=["Posts"])
 interactions_router = APIRouter(prefix="/api/v1", tags=["Interactions"])
 feed_router = APIRouter(prefix="/api/v1", tags=["Feed"])
+analytics_router = APIRouter(prefix="/api/v1", tags=["Analytics"])
 
 
 @users_router.post("/users", response_model=schemas.UserResponse)
@@ -468,3 +469,94 @@ def get_personalized_feed(user_id: int, limit: int = 20, db: Session = Depends(g
     
     # Return limited number of posts
     return scored_posts[:limit]
+
+
+# Analytics endpoints
+@analytics_router.get("/analytics", tags=["Analytics"])
+def get_analytics(db: Session = Depends(get_db)):
+    """Get analytics data for the platform"""
+    
+    # Get counts of various entities
+    user_count = db.query(func.count(models.User.id)).scalar()
+    post_count = db.query(func.count(models.Post.id)).scalar()
+    comment_count = db.query(func.count(models.Comment.id)).scalar()
+    like_count = db.query(func.count(models.Like.id)).scalar()
+    
+    # Get most active users (by post count)
+    most_active_users = (
+        db.query(
+            models.User.id,
+            models.User.username,
+            func.count(models.Post.id).label('post_count')
+        )
+        .join(models.Post, models.User.id == models.Post.creator_id)
+        .group_by(models.User.id)
+        .order_by(desc('post_count'))
+        .limit(5)
+        .all()
+    )
+    
+    # Get most liked posts
+    most_liked_posts = (
+        db.query(
+            models.Post.id,
+            models.Post.title,
+            func.count(models.Like.id).label('like_count')
+        )
+        .join(models.Like, models.Post.id == models.Like.post_id)
+        .group_by(models.Post.id)
+        .order_by(desc('like_count'))
+        .limit(5)
+        .all()
+    )
+    
+    # Get most used tags
+    tag_query = (
+        db.query(
+            models.Tag.name,
+            func.count(models.PostTag.c.post_id).label('usage_count')
+        )
+        .join(models.PostTag, models.Tag.id == models.PostTag.c.tag_id)
+        .group_by(models.Tag.name)
+        .order_by(desc('usage_count'))
+        .limit(10)
+        .all()
+    )
+    
+    top_tags = [{"name": tag[0], "count": tag[1]} for tag in tag_query]
+    
+    # Get activity over time (posts per day for the last 7 days)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    
+    daily_posts = (
+        db.query(
+            func.date(models.Post.created_at).label('date'),
+            func.count(models.Post.id).label('count')
+        )
+        .filter(models.Post.created_at >= seven_days_ago)
+        .group_by(func.date(models.Post.created_at))
+        .order_by(func.date(models.Post.created_at))
+        .all()
+    )
+    
+    activity_data = [{"date": str(day[0]), "count": day[1]} for day in daily_posts]
+    
+    # Return all analytics data
+    return {
+        "total_counts": {
+            "users": user_count,
+            "posts": post_count,
+            "comments": comment_count,
+            "likes": like_count
+        },
+        "most_active_users": [
+            {"id": user[0], "username": user[1], "post_count": user[2]} 
+            for user in most_active_users
+        ],
+        "most_liked_posts": [
+            {"id": post[0], "title": post[1], "like_count": post[2]} 
+            for post in most_liked_posts
+        ],
+        "top_tags": top_tags,
+        "activity_data": activity_data
+    }

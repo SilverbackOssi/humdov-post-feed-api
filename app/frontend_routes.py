@@ -24,6 +24,12 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@frontend_router.get("/analytics", response_class=HTMLResponse)
+async def analytics(request: Request):
+    """Render the analytics page"""
+    return templates.TemplateResponse("analytics.html", {"request": request})
+
+
 @frontend_router.get("/profile/{user_id}", response_class=HTMLResponse)
 async def profile(request: Request, user_id: int, db: Session = Depends(get_db)):
     """Render the profile page for a specific user"""
