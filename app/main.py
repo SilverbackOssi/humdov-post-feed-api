@@ -6,7 +6,7 @@ from .database import engine
 from . import models, routes, schemas, frontend_routes, seed_data
 
 # Create FastAPI instance
-app = FastAPI(
+app == FastAPI(
     title="Humdov Post Feed API",
     description="A simple API for posts, users, and interactions",
     version="0.1.0"
